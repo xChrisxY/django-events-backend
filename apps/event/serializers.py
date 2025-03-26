@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Event, AudioNote, EventImage
-from item.serializers import ItemListSerializer, ItemSerializer
-from authentication.serializers import UserSerializer
+from apps.item.serializers import ItemListSerializer
+from apps.authentication.serializers import UserSerializer
+from apps.item.models import ItemList
 
 class EventImageSerializer(serializers.ModelSerializer):
     
@@ -20,4 +21,44 @@ class AudioNoteSerializer(serializers.ModelSerializer):
 
         
 class EventSerializer(serializers.ModelSerializer):
-    pass
+    
+    organizer = UserSerializer(read_only=True)
+    organizer_id = serializers.PrimaryKeyRelatedField(
+        queryset = User.objects.all(),
+        source = 'organizer',
+        write_only = True
+    )
+    
+    participants = UserSerializer(many=True, read_only=True)
+    participants_ids = serializers.PrimaryKeyRelatedField(
+        queryset = User.objects.all(),
+        source = 'participants',
+        many = True, 
+        write_only = True,
+        required = False
+    )
+    
+    images = EventImageSerializer(many=True, read_only=True)
+    audio_notes = AudioNoteSerializer(many=True, read_only=True)
+    item_list = ItemListSerializer(read_only=True)
+
+    class Meta:
+        model = Event
+        fields = [
+            'id', 'name', 'description', 'location', 'date', 'time', 'created_at', 'updated_at',
+            'organizer', 'organizer_id', 'participants', 'participants_ids', 
+            'images', 'audio_notes', 'item_list'
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+
+    def create(self, validated_data):
+
+        participants_data = validated_data.pop('participants', [])
+        organizer = validated_data.pop('organizer')
+
+        event = Event.objects.create(organizer=organizer, **validated_data)
+
+        if participants_data:
+            event.participants.set(participants_data)
+
+        ItemList.objects.create(event=event)
