@@ -62,3 +62,5 @@ class EventSerializer(serializers.ModelSerializer):
             event.participants.set(participants_data)
 
         ItemList.objects.create(event=event)
+
+        return event
