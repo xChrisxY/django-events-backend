@@ -36,6 +36,7 @@ class EventImage(models.Model):
         verbose_name="Evento"
     )
     image = models.ImageField(upload_to="event_images/")
+    caption = models.CharField(max_length=255, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

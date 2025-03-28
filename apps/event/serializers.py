@@ -8,7 +8,7 @@ from apps.item.models import ItemList
 class EventImageSerializer(serializers.ModelSerializer):
     
     class Meta: 
-        model = EventImage,
+        model = EventImage
         fields = ['id', 'image', 'caption', 'uploaded_at']
         read_only_fields = ['uploaded_at']
         
